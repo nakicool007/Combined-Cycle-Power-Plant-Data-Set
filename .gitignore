@@ -1,0 +1,22 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Jupyter temporary files (keep the homework notebook tracked)
+.ipynb_checkpoints/
+
+# Local secrets and editor configuration
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# OS files and editor backups
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~

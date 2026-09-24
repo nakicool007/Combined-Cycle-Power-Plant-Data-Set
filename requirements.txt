@@ -1,0 +1,18 @@
+# Notebook environment
+jupyterlab
+ipykernel
+
+# Data handling and workbook readers
+numpy
+pandas
+openpyxl
+odfpy
+
+# Plotting
+matplotlib
+seaborn
+
+# Statistical inference and machine learning
+scipy
+statsmodels
+scikit-learn
