@@ -1,6 +1,10 @@
 # DSCI 552 - Homework 2
 
-Project setup for the Combined Cycle Power Plant homework, based on the supplied `Homework2 (1).pdf` (Instructor: Mohammad Reza Rajati). Complete the analysis and written responses yourself in the existing notebook. This README contains assignment requirements and environment instructions, not solutions.
+**Author:** Nakul Kumbria
+
+**GitHub:** nakicool007
+
+Analysis of the Combined Cycle Power Plant dataset using exploratory plots, linear and polynomial regression, interaction models, and KNN regression. The notebook contains the implementation, saved outputs, and written interpretations for Problem 1, along with answers to ISLR exercises 2.4.1 and 2.4.7.
 
 ## Project structure
 
@@ -13,13 +17,60 @@ Project setup for the Combined Cycle Power Plant homework, based on the supplied
 |       |-- Folds5x2_pp.xlsx
 |       `-- Folds5x2_pp.ods
 |-- notebook/
-|   `-- Kumbria_Nakul_HW2.ipynb
+|   |-- Kumbria_Nakul_HW2.ipynb
+|   |-- coefficient_comparison.png
+|   |-- nonlinear_regression.png
+|   `-- knn_regression_errors.png
 `-- requirements.txt
 ```
 
-The folder layout follows the reference image, with names appropriate to this homework. The vertebral-column data files and KNN classification notebook shown in that image are not part of this assignment.
+The local `.venv/` environment is excluded from version control. The PNG files are saved plot artifacts; the notebook also displays plots inline.
 
-## Environment setup
+## Dataset
+
+The analysis reads the first worksheet (`sheet_name=0`, Sheet 1) of `Folds5x2_pp.xlsx`: **9,568 observations and 5 variables**. Each row contains hourly average measurements from the power plant operating at full load.
+
+- **AT:** Ambient temperature (degrees Celsius).
+- **V:** Exhaust vacuum (cm Hg).
+- **AP:** Ambient pressure (millibars).
+- **RH:** Relative humidity (%).
+- **PE:** Net electrical energy output (MW), the response variable.
+
+AT, V, AP, and RH are the predictors. Only the first sheet is used; the workbook's shuffled sheets are not combined. The ODS file is retained as an alternative dataset format and is not loaded by the notebook. Potential outliers are flagged for discussion but retained in the analysis.
+
+## Completed work
+
+- [x] **1(a): Dataset preparation.** Dataset files are included, and the notebook loads Sheet 1.
+- [x] **1(b): Exploration.** Reports the dimensions and variable meanings, plots all ten unique variable pairs, discusses relationships, and calculates mean, median, range, quartiles, and interquartile range.
+- [x] **1(c): Simple linear regression.** Fits PE separately against each predictor; reports slopes, standard errors, 95% confidence intervals, p-values, and R-squared. Includes fitted-line and residual plots, flags absolute standardized residuals above 3, and discusses potential outliers.
+- [x] **1(d): Multiple linear regression.** Fits all four predictors together and interprets coefficients and their significance.
+- [x] **1(e): Coefficient comparison.** Plots simple versus multiple regression coefficients and explains changes, including the RH sign reversal.
+- [x] **1(f): Nonlinearity.** Fits separate cubic regressions using centered and scaled predictors, compares them with linear fits, and jointly tests the squared and cubed terms using F-tests.
+- [x] **1(g): Interactions.** Fits all four main effects and six pairwise interactions, reports individual interaction tests, and compares the interaction model with the additive model using a joint F-test.
+- [x] **1(h): Regression model selection.** Creates a reproducible 70/30 train/test split, compares the four-predictor baseline with a quadratic and interaction model, and performs backward elimination at a 5% significance level while preserving the main effects required by retained higher-order terms.
+- [x] **1(i): KNN regression.** Evaluates every integer k from 1 through 100 with raw and min-max normalized features, reports the best k for each, and plots training and test MSE against 1/k.
+- [x] **1(j): Model comparison.** Compares the best regression and KNN results and discusses prediction, interpretability, and evaluation limitations.
+- [x] **Problem 2 / ISLR 2.4.1.** Written answers on flexible versus inflexible methods for different sample sizes, predictor counts, nonlinear relationships, and noise levels.
+- [x] **Problem 3 / ISLR 2.4.7.** Calculates Euclidean distances, orders neighbors, predicts Green for K = 1 and Red for K = 3, and discusses K for a nonlinear decision boundary.
+
+## Results recorded in the notebook
+
+Temperature is the strongest individual linear predictor, with R-squared approximately **0.899**. All four simple-regression slopes are significant at 5%. Using all four predictors increases R-squared to approximately **0.929**, and all four coefficients remain significant. RH changes from a positive simple-regression slope to a negative slope after adjusting for the other predictors.
+
+The cubic-model joint tests indicate nonlinearity for all four predictors, although the improvement for RH is small. In the full interaction model, **AT:V, AT:RH, V:AP, and AP:RH** are significant at 5%; R-squared increases to approximately **0.9363**.
+
+For prediction, the notebook uses `np.random.default_rng(42)` to shuffle the observations, assigning **6,697 to training** and **2,871 to testing**. Regression scaling and KNN normalization are fitted on training data only. All models below use that same split; MSE is measured in **MW-squared**.
+
+- **Linear regression, all four predictors:** training MSE **20.5575**; test MSE **21.2777**.
+- **Selected quadratic and interaction regression:** training MSE **17.8569**; test MSE **18.7383**.
+- **Raw-feature KNN, k = 7:** training MSE **11.6932**; test MSE **16.9652**.
+- **Normalized-feature KNN, k = 6:** training MSE **9.9151**; test MSE **15.5542**.
+
+Backward elimination removes **AT:AP**, **V:RH**, and **V-squared**, in that order. The selected regression retains the intercept, all four main effects, AT-squared, AP-squared, RH-squared, and AT:V, AT:RH, V:AP, and AP:RH.
+
+Normalized KNN with **k = 6** has the lowest recorded test MSE, approximately **17% lower** than the selected regression model. These results describe one split. Because k was selected using test MSE, that test set also served as a tuning set; an independent performance estimate would require training-only cross-validation followed by evaluation on a separate test set. The notebook discusses this limitation. Regression significance tests use the usual model assumptions and a 5% cutoff without a multiple-testing adjustment.
+
+## Environment and running the notebook
 
 From the project root in PowerShell:
 
@@ -29,54 +80,26 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m jupyterlab
 ```
 
-Open `notebook/Kumbria_Nakul_HW2.ipynb` using the virtual environment's Python kernel.
+Open `notebook/Kumbria_Nakul_HW2.ipynb`, select the virtual environment's Python kernel, and run the cells from top to bottom. Later sections reuse data, fitted models, and the train/test split created earlier.
 
-Dependencies support the assignment as follows:
+**Data path:** The notebook currently reads the workbook using an absolute Windows path under the author's project directory. If you move or clone the project, update the `pd.read_excel` path before running. When the kernel's working directory is `notebook/`, the relative path is `../data/combined_cycle_power_plant/Folds5x2_pp.xlsx`.
 
-- `jupyterlab` and `ipykernel`: notebook editing and execution.
-- `numpy` and `pandas`: numerical operations and data handling.
-- `openpyxl`: reading the supplied Excel workbook.
-- `odfpy`: optional reading of the supplied ODS alternative.
-- `matplotlib` and `seaborn`: plots.
-- `scipy` and `statsmodels`: statistical tools, regression inference, and p-values.
-- `scikit-learn`: regression, feature transformations, splitting, and error metrics.
+The first code cell also contains a `%pip install` command for core analysis packages. `requirements.txt` provides the full environment, including JupyterLab and optional ODS support:
 
-The homework does not prescribe package versions. `requirements.txt` lists direct dependencies without pinning versions.
+- `jupyterlab`, `ipykernel`: notebook editing and execution.
+- `numpy`, `pandas`: numerical operations and data handling.
+- `openpyxl`, `odfpy`: Excel and optional ODS readers.
+- `matplotlib`, `seaborn`: plotting.
+- `scipy`, `statsmodels`: regression inference and statistical tests.
+- `scikit-learn`: KNN regression, scaling, and machine learning utilities.
 
-## Dataset requirements
-
-Use the Combined Cycle Power Plant dataset supplied in `data/combined_cycle_power_plant/`. The XLSX and ODS files are alternative formats of the same dataset; they are not separate sets of observations.
-
-**Use Sheet 1**, as required by the assignment's footnote. The five sheets are shuffled versions of the same dataset. Do not combine them as separate observations. The XLSX workbook is sufficient for the homework; the original ODS copy is retained.
-
-The assignment describes temperature, ambient pressure, relative humidity, and exhaust vacuum as predictors of net hourly electrical energy output. Verify the workbook's column labels as part of your exploration.
-
-## Assignment checklist
-
-These items summarize the supplied PDF. Refer to it for the complete wording and footnotes. Check items off only after completing your own work.
-
-- [ ] 1(a): Obtain the Combined Cycle Power Plant data and use Sheet 1.
-- [ ] 1(b)(i): Report the row and column counts and explain what they represent.
-- [ ] 1(b)(ii): Make pairwise scatterplots of all variables, including the response, and discuss your findings.
-- [ ] 1(b)(iii): Tabulate each variable's mean, median, range, first and third quartiles, and interquartile range.
-- [ ] 1(c): Fit a separate simple linear regression for each predictor; discuss significance, supporting plots, and potential outliers.
-- [ ] 1(d): Fit multiple linear regression with all predictors; identify which coefficient null hypotheses can be rejected.
-- [ ] 1(e): Compare simple and multiple regression coefficients in a plot, with simple coefficients on the x-axis and multiple coefficients on the y-axis.
-- [ ] 1(f): Fit a cubic polynomial regression for each predictor and assess evidence of nonlinearity.
-- [ ] 1(g): Fit a full linear model with all pairwise predictor interactions and assess their significance.
-- [ ] 1(h): Randomly split the data into 70% training and 30% testing. Compare the all-predictor regression with a model including all pairwise interactions and quadratic terms; remove insignificant variables using p-values with care about interactions. Report training and test MSE for both models.
-- [ ] 1(i): Run KNN regression with raw and normalized features, examine integer k values from 1 through 100, select the best fit, and plot training and test errors against 1/k.
-- [ ] 1(j): Compare KNN regression with the linear regression model having the smallest test error and discuss the results.
-- [ ] 2: Complete ISLR exercise 2.4.1.
-- [ ] 3: Complete ISLR exercise 2.4.7.
-
-The provided PDF names the ISLR exercises but does not reproduce their questions or specify the book edition. Use the edition assigned by your course. It does not specify a submission filename or export format; follow any separate course submission instructions.
+Dependencies are not version-pinned, so exact numerical output can vary slightly across environments. The plotting cells display figures with `plt.show()`; they do not automatically overwrite the saved PNG files.
 
 ## Dataset provenance
 
-The original dataset notes describe measurements collected from a plant operating at full load between 2006 and 2011. The plant combines gas turbines, steam turbines, and heat recovery steam generators. The supplied shuffles support 5x2 cross-validation in the dataset's original studies; this homework instead explicitly directs you to Sheet 1 and specifies its own split in 1(h).
+The dataset notes describe measurements collected between 2006 and 2011 from a combined cycle power plant operating at full load, combining gas turbines, steam turbines, and heat recovery steam generators.
 
-References retained from the original dataset notes:
+References retained from the original dataset documentation:
 
-- P?nar T?fekci. *Prediction of full load electrical power output of a base load operated combined cycle power plant using machine learning methods*. International Journal of Electrical Power & Energy Systems, 60, September 2014, pp. 126-140. DOI: 10.1016/j.ijepes.2014.02.027.
-- Heysem Kaya, P?nar T?fekci, and Sad?k Fikret G?rgen. *Local and Global Learning Methods for Predicting Power of a Combined Gas & Steam Turbine*. ICETCEE 2012, Dubai, March 2012, pp. 13-18.
+- Pinar Tufekci. *Prediction of full load electrical power output of a base load operated combined cycle power plant using machine learning methods*. International Journal of Electrical Power & Energy Systems, 60, September 2014, pp. 126-140. DOI: 10.1016/j.ijepes.2014.02.027.
+- Heysem Kaya, Pinar Tufekci, and Sadik Fikret Gurgen. *Local and Global Learning Methods for Predicting Power of a Combined Gas & Steam Turbine*. ICETCEE 2012, Dubai, March 2012, pp. 13-18.
