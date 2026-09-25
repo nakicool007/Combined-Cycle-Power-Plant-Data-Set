@@ -82,7 +82,7 @@ python -m venv .venv
 
 Open `notebook/Kumbria_Nakul_HW2.ipynb`, select the virtual environment's Python kernel, and run the cells from top to bottom. Later sections reuse data, fitted models, and the train/test split created earlier.
 
-**Data path:** The notebook currently reads the workbook using an absolute Windows path under the author's project directory. If you move or clone the project, update the `pd.read_excel` path before running. When the kernel's working directory is `notebook/`, the relative path is `../data/combined_cycle_power_plant/Folds5x2_pp.xlsx`.
+**Data path:** The notebook uses a relative path to the included workbook and supports running from either the project root or the `notebook/` folder. No path edits are needed after cloning or moving the project on Windows, macOS, or Linux. Keep the repository's folder structure intact and install the dependencies before running.
 
 The first code cell also contains a `%pip install` command for core analysis packages. `requirements.txt` provides the full environment, including JupyterLab and optional ODS support:
 
